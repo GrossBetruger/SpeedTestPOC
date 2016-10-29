@@ -126,9 +126,7 @@ DROP_TABLE = "DROP TABLE {};"
 SELECT_SCHEMA = """SELECT column_name, data_type, character_maximum_length
                 from INFORMATION_SCHEMA.COLUMNS WHERE table_name = '{}';"""
 
-PASS = [108, 115, 100, 77, 100, 109, 97, 50, 50]
 
-HASHED_PASS = "018ade0a603f1e89158b78b08593812d"
 
 NATURAL_VIEW =\
 """
