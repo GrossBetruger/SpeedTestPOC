@@ -145,41 +145,6 @@ def get_grouped():
                               ON file_download_info.test_id = system_info.test_id""")
     return data
 
-
-def restart_db():
-    from hashlib import md5
-    print "WARNING! you are about to DELETE ALL DATA from a remote DB"
-    confirm = raw_input("enter password for restarting DB")
-    hasher = md5()
-    hasher.update(confirm)
-    hashed_password = hasher.hexdigest()
-    if hashed_password == HASHED_PASS:
-        print "authentication passed"
-        restarter = AWSWorker()
-        restarter.drop_table(TABLE_ISP)
-        restarter.drop_table(TABLE_DOWNLOAD_INFO)
-        restarter.drop_table(TABLE_SYSTEM_INFO)
-        restarter.create_table(CREATE_TABLE_ISP)
-        restarter.create_table(CREATE_TABLE_DOWNLOAD_INFO)
-        restarter.create_table(CREATE_TABLE_SYSTEM_INFO)
-        print "restarting dbs done"
-    else:
-        print "authentication failed"
-
-
-def restart_db_auth_test():
-    from hashlib import md5
-    print "WARNING! you are about to DELETE ALL DATA from a remote DB"
-    confirm = raw_input("enter password for restarting DB")
-    hasher = md5()
-    hasher.update(confirm)
-    hashed_password = hasher.hexdigest()
-    if hashed_password == HASHED_PASS:
-        print "authentication passed"
-    else:
-        print "authentication failed"
-
-
 def aggregate_tables():
     aggregator = AWSWorker()
     global_json = defaultdict(list)
