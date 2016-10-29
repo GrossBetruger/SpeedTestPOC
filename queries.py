@@ -1,10 +1,12 @@
 __author__ = 'orenko'
-
+import json
 
 TABLE_SYSTEM_INFO = "system_info"
 TABLE_DOWNLOAD_INFO = "file_download_info"
 TABLE_ISP = "ISP_speed_test_website_download_info"
 ALL_TABLES = (TABLE_ISP, TABLE_SYSTEM_INFO, TABLE_DOWNLOAD_INFO)
+TABLE_NAME_SEMI_STRUCTURED = "internet_speed_test_data"
+MOCK_JSON = '{"operating_system": "WINDOWS 10", "comparison_info": {"test_kodi": {"url": "http://mirrors.kodi.tv/releases/osx/x86_64/kodi-16.1-Jarvis-x86_64.dmg", "file_name": "kodi-16.1-Jarvis-x86_64.dmg", "file_size_bytes": 68666613, "file_download_rate": 1031.65, "speed_test_start_time": "2016-10-24 04:00:48", "file_download_start_time": "2016-10-24 04:01:28", "speed_test_result": 32.71}, "test_firefox": {"url": "https://ftp.mozilla.org/pub/firefox/releases/37.0b1/win32/en-US/Firefox%20Setup%2037.0b1.exe", "file_name": "Firefox Setup 37.0b1.exe", "file_size_bytes": 40797024, "file_download_rate": 2343.58, "speed_test_start_time": "2016-10-24 04:02:54", "file_download_start_time": "2016-10-24 04:03:26", "speed_test_result": 33.48}}, "public_ip": "37.142.192.249", "connection": "WIFI", "test_id": "a19f06fa-abe9-4f63-b151-cb37bb761069", "speed_test_website": "HOT", "browser": "FIREFOX"}'
 
 CREATE_TABLE_SYSTEM_INFO =\
     """
@@ -16,6 +18,16 @@ CREATE_TABLE_SYSTEM_INFO =\
      public_IP VARCHAR(45) NOT NULL,
      connection VARCHAR(20) NOT NULL);
     """
+
+CREATE_TABLE_SEMI_STRUCTURED =\
+"""
+CREATE TABLE internet_speed_test_data (
+id SERIAL PRIMARY KEY,
+data JSON,
+timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+"""
+
 
 CREATE_TABLE_DOWNLOAD_INFO =\
     """
@@ -53,6 +65,24 @@ MOCK_INSERT_SYSTEM_INFO =\
     VALUES ('0', 'IOS', 'dango0', '127.0.0.1', 'fastAsFuck');
     """
 
+MOCK_INSERT_SEMI_STRUCTURED =\
+"""
+INSERT INTO internet_speed_test_data
+(
+data
+)
+VALUES ('{}');
+""".format(MOCK_JSON)
+
+MOCK_BAD_DATA_INSERT_SEMI_STRUCTURED =\
+"""
+INSERT INTO internet_speed_test_data
+(
+data
+)
+VALUES ('{}');
+""".format(json.dumps({"bad_key": "bad_value"}))
+
 
 MOCK_INSERT_SYSTEM_INFO_PARTIAL =\
     """
@@ -89,13 +119,16 @@ MOCK_INSERT_ISP =\
     VALUES ('0', 'dango0', 99.5, '1970-01-01');
     """
 
-SELECT_ALL = "SELECT * FROM system_info;"
+SELECT_ALL = "SELECT * FROM {};"
 
 DROP_TABLE = "DROP TABLE {};"
 
 SELECT_SCHEMA = """SELECT column_name, data_type, character_maximum_length
                 from INFORMATION_SCHEMA.COLUMNS WHERE table_name = '{}';"""
 
+PASS = [108, 115, 100, 77, 100, 109, 97, 50, 50]
+
+HASHED_PASS = "018ade0a603f1e89158b78b08593812d"
 
 NATURAL_VIEW =\
 """
