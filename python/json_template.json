@@ -1,0 +1,64 @@
+{
+    "browser": "FIREFOX",
+    "comparison_info": {
+        "test_aws-java-sdk": {
+            "file_download_rate_KBs": 2065.21,
+            "file_download_start_time": "2016-10-29 13:18:59",
+            "file_name": "aws-java-sdk.zip",
+            "file_size_bytes": 209362305.0,
+            "speed_test_result_mbs": 94.75,
+            "speed_test_start_time": "2016-10-29 13:18:27",
+            "url": "https://sdk-for-java.amazonwebservices.com/latest/aws-java-sdk.zip"
+        },
+        "test_firefox": {
+            "file_download_rate_KBs": 3320.07,
+            "file_download_start_time": "2016-10-29 13:16:19",
+            "file_name": "Firefox Setup 37.0b1.exe",
+            "file_size_bytes": 40797024.0,
+            "speed_test_result_mbs": 94.73,
+            "speed_test_start_time": "2016-10-29 13:15:46",
+            "url": "https://ftp.mozilla.org/pub/firefox/releases/37.0b1/win32/en-US/Firefox%20Setup%2037.0b1.exe"
+        },
+        "test_google-go": {
+            "file_download_rate_KBs": 1436.16,
+            "file_download_start_time": "2016-10-29 13:17:19",
+            "file_name": "go1.7.1.windows-amd64.msi",
+            "file_size_bytes": 75001856.0,
+            "speed_test_result_mbs": 94.72,
+            "speed_test_start_time": "2016-10-29 13:16:47",
+            "url": "https://storage.googleapis.com/golang/go1.7.1.windows-amd64.msi"
+        },
+        "test_kodi": {
+            "file_download_rate_KBs": 1397.03,
+            "file_download_start_time": "2016-10-29 13:14:43",
+            "file_name": "kodi-16.1-Jarvis-x86_64.dmg",
+            "file_size_bytes": 68666613.0,
+            "speed_test_result_mbs": 95.01,
+            "speed_test_start_time": "2016-10-29 13:14:10",
+            "url": "http://mirrors.kodi.tv/releases/osx/x86_64/kodi-16.1-Jarvis-x86_64.dmg"
+        },
+        "test_postgresql": {
+            "file_download_rate_KBs": 2153.01,
+            "file_download_start_time": "2016-10-29 13:21:36",
+            "file_name": "postgresql-9.6.0-1-windows-x64.exe",
+            "file_size_bytes": 143304304.0,
+            "speed_test_result_mbs": 94.54,
+            "speed_test_start_time": "2016-10-29 13:20:53",
+            "url": "http://get.enterprisedb.com/postgresql/postgresql-9.6.0-1-windows-x64.exe"
+        },
+        "test_skype": {
+            "file_download_rate_KBs": 7122.52,
+            "file_download_start_time": "2016-10-29 13:23:28",
+            "file_name": "getskype-windows",
+            "file_size_bytes": 43760768.0,
+            "speed_test_result_mbs": 94.59,
+            "speed_test_start_time": "2016-10-29 13:22:56",
+            "url": "https://get.skype.com/go/getskype-windows"
+        }
+    },
+    "connection": "LAN",
+    "operating_system": "WINDOWS 10",
+    "public_ip": "37.142.192.249",
+    "speed_test_website": "HOT",
+    "test_id": "56e2c04e-e333-4c95-99da-c1abd903f80d"
+}
