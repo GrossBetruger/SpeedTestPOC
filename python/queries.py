@@ -1,4 +1,6 @@
 __author__ = 'orenko'
+
+
 import json
 
 TABLE_SYSTEM_INFO = "system_info"
@@ -7,6 +9,8 @@ TABLE_ISP = "ISP_speed_test_website_download_info"
 ALL_TABLES = (TABLE_ISP, TABLE_SYSTEM_INFO, TABLE_DOWNLOAD_INFO)
 TABLE_NAME_SEMI_STRUCTURED = "internet_speed_test_data"
 MOCK_JSON = '{"operating_system": "WINDOWS 10", "comparison_info": {"test_kodi": {"url": "http://mirrors.kodi.tv/releases/osx/x86_64/kodi-16.1-Jarvis-x86_64.dmg", "file_name": "kodi-16.1-Jarvis-x86_64.dmg", "file_size_bytes": 68666613, "file_download_rate": 1031.65, "speed_test_start_time": "2016-10-24 04:00:48", "file_download_start_time": "2016-10-24 04:01:28", "speed_test_result": 32.71}, "test_firefox": {"url": "https://ftp.mozilla.org/pub/firefox/releases/37.0b1/win32/en-US/Firefox%20Setup%2037.0b1.exe", "file_name": "Firefox Setup 37.0b1.exe", "file_size_bytes": 40797024, "file_download_rate": 2343.58, "speed_test_start_time": "2016-10-24 04:02:54", "file_download_start_time": "2016-10-24 04:03:26", "speed_test_result": 33.48}}, "public_ip": "37.142.192.249", "connection": "WIFI", "test_id": "a19f06fa-abe9-4f63-b151-cb37bb761069", "speed_test_website": "HOT", "browser": "FIREFOX"}'
+TABLE_DOWNLOAD_URLS = "download_urls"
+TABLE_SPEEDTEST_URLS = "speedtest_urls"
 
 CREATE_TABLE_SYSTEM_INFO =\
     """
@@ -135,4 +139,88 @@ SELECT file_name, download_speed_rate_mbs/8*2^10,
 FROM system_info
   NATURAL JOIN file_download_info
   NATURAL JOIN isp_speed_test_website_download_info
+"""
+
+CREATE_DOWNLOAD_URLS =\
+"""
+CREATE TABLE download_urls (
+id SERIAL PRIMARY KEY,
+url VARCHAR(1000) NOT NULL,
+count INTEGER NOT NULL,
+active BOOLEAN NOT NULL)
+"""
+
+INSERT_INTO_DOWNLOAD_URLS =\
+"""
+INSERT INTO download_urls
+    (
+    url,
+    count,
+    active)
+    VALUES ('{}', 0, TRUE);
+"""
+
+INSERT_INTO_SPEEDTEST_URLS =\
+"""
+INSERT INTO speedtest_urls
+    (
+    url,
+    count,
+    active)
+    VALUES ('{}', 0, TRUE);
+"""
+
+DEACTIVATE_DOWNLOAD_URL =\
+"""
+UPDATE download_urls SET active = FALSE WHERE url = '{}';
+"""
+
+REACTIVATE_DOWNLOAD_URL =\
+"""
+UPDATE download_urls SET active = TRUE WHERE url = '{}';
+"""
+
+CREATE_SPEEDTEST_URLS =\
+"""
+CREATE TABLE speedtest_urls (
+id SERIAL PRIMARY KEY,
+url VARCHAR(1000) NOT NULL,
+count INTEGER NOT NULL,
+active BOOLEAN NOT NULL)
+"""
+
+DEACTIVATE_SPEEDTEST_URL =\
+"""
+UPDATE speedtest_urls SET active = FALSE WHERE url = '{}';
+"""
+
+REACTIVATE_SPEEDTEST_URL =\
+"""
+UPDATE speedtest_urls SET active = TRUE WHERE url = '{}';
+"""
+
+INCREMENT_DOWNLOAD_URL =\
+"""
+UPDATE download_urls SET count = count + 1
+WHERE url = '{}'
+"""
+
+SELECT_MIN_DOWNLOAD_URLS =\
+"""
+SELECT url FROM download_urls
+WHERE active = TRUE
+ORDER BY count
+"""
+
+INCREMENT_SPEEDTEST_URL =\
+"""
+UPDATE speedtest_urls SET count = count + 1
+WHERE url = '{}'
+"""
+
+SELECT_MIN_SPEEDTEST_URLS =\
+"""
+SELECT url FROM speedtest_urls
+WHERE active = TRUE
+ORDER BY count
 """
