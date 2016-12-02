@@ -104,15 +104,11 @@ class AWSWorker:
         self.send_command("DELETE FROM {} WHERE id = {}".format(table_name, row_id))
         self.con.commit()
 
-    @classmethod
-    def select_all(cls, table_name):
-        all_selector = AWSWorker()
-        return all_selector.send_query("SELECT * FROM {};".format(table_name))
+    def select_all(self, table_name):
+        return self.send_query("SELECT * FROM {};".format(table_name))
 
-    @classmethod
-    def get_schema(cls, table_name):
-        schema_selector = AWSWorker()
-        return schema_selector.send_query(SELECT_SCHEMA.format(table_name))
+    def get_schema(self, table_name):
+        return self.send_query(SELECT_SCHEMA.format(table_name))
 
 
 def pretty_print_download_info(rows):
@@ -155,6 +151,11 @@ def aggregate_tables():
             if payload not in global_json [x[1]]:
                 global_json [x[1]] += [x[0]] + [x[2:]]
     return global_json
+
+
+def read_lookup_from_file(filename):
+    with open(filename, "r") as f:
+        return [x.strip() for x in f.readlines()]
 
 
 def test_data_json_sanity(data_json):
@@ -269,12 +270,28 @@ def parse_time(datetime_str):
     dt = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
     return time.mktime(dt.timetuple())
 
+
 if __name__ == "__main__":
+    # worker = AWSWorker()
+    # print worker.send_query("SELECT url FROM download_urls WHERE active = TRUE ORDER BY count", flat=1)
+    # quit()
+    # urls = read_lookup_from_file("url.txt")
+    # speedtest_urls = read_lookup_from_file("speed_test_websites.txt")
+    # worker = AWSWorker()
+    # worker.send_command(DEACTIVATE_DOWNLOAD_URL.format('https://get.skype.com/go/getskype-windows'))
+    # all_urls = worker.send_query(SELECT_MIN_DOWNLOAD_URLS)
+    # for url in all_urls:
+    #     print url
+    # # for url in speedtest_urls:
+    # #     worker.send_command(INSERT_INTO_SPEEDTEST_URLS.format(url))
+    # print "done"
+    # quit()
     worker = AWSWorker()
     data = worker.send_query(SELECT_ALL.format(TABLE_NAME_SEMI_STRUCTURED))
     pretty_print_download_info(data)
     test_download_info_table_sanity(data)
     diff = aggregate_speed_diffs(data, rounded=True)
+    pretty_print_download_info(data[-1])
     print diff
     print "percent of speed-test prediction actually used:", str(round(mean(diff)*100, 2))+"%"
     print "number of global tests", len(data)
