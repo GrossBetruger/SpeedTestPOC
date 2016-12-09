@@ -6,6 +6,7 @@ from datetime import datetime
 from numpy import mean
 import time
 
+
 BROWSER = "browser"
 
 SPEED_TEST_WEBSITE = "speed_test_website"
@@ -20,7 +21,7 @@ OPERATING_SYSTEM = "operating_system"
 
 TEST_ID = "test_id"
 
-VERSION_1_MAX = 21
+VERSION_1_MAX = 0
 
 FILE_DOWNLOAD_START_TIME = "file_download_start_time"
 
@@ -123,7 +124,6 @@ def jsn_pretty_print(dic):
                      indent=4, separators=(',', ': '))
 
 
-
 def get_speed_test(speed_test_id):
     output = []
     speed_test_worker = AWSWorker()
@@ -140,6 +140,7 @@ def get_grouped():
                               JOIN system_info
                               ON file_download_info.test_id = system_info.test_id""")
     return data
+
 
 def aggregate_tables():
     aggregator = AWSWorker()
@@ -177,12 +178,20 @@ def test_data_json_sanity(data_json):
         print "\tinner keys test passed"
 
         assert type(inner_json[FIELD_URL]) == unicode
-        assert type(inner_json[FILED_FILE_SIZE_BYTES]) == float
+        print FIELD_URL, "ok"
+        print type(inner_json[FILED_FILE_SIZE_BYTES])
+        assert type(inner_json[FILED_FILE_SIZE_BYTES]) == int
+        print FILED_FILE_SIZE_BYTES, "ok"
         assert type(inner_json[FILE_NAME]) == unicode
+        print FILE_NAME, "ok"
         assert type(inner_json[FILE_DOWNLOAD_START_TIME]) == unicode
+        print FILE_DOWNLOAD_START_TIME, "ok"
         assert type(inner_json[FILE_DOWNLOAD_RATE]) == float
+        print FILE_DOWNLOAD_RATE, "ok"
         assert type(inner_json[SPEED_TEST_START_TIME]) == unicode
+        print SPEED_TEST_START_TIME, "ok"
         assert type(inner_json[SPEED_TEST_RESULT]) == float
+        print SPEED_TEST_RESULT, "ok"
         print "\tleaf data type test passed"
         assert parse_time(inner_json[SPEED_TEST_START_TIME]) < \
                parse_time(inner_json[FILE_DOWNLOAD_START_TIME])
@@ -271,29 +280,35 @@ def parse_time(datetime_str):
     return time.mktime(dt.timetuple())
 
 
+def sieve_speedtests(data, speedtests_names):
+    return [datapoint for datapoint in data if datapoint[1]["speed_test_website"] in speedtests_names]
+
+
+def mean_diff(diffs):
+    return str(round(mean(diffs) * 100, 2))
+
+
 if __name__ == "__main__":
-    # worker = AWSWorker()
-    # print worker.send_query("SELECT url FROM download_urls WHERE active = TRUE ORDER BY count", flat=1)
-    # quit()
-    # urls = read_lookup_from_file("url.txt")
-    # speedtest_urls = read_lookup_from_file("speed_test_websites.txt")
-    # worker = AWSWorker()
-    # worker.send_command(DEACTIVATE_DOWNLOAD_URL.format('https://get.skype.com/go/getskype-windows'))
-    # all_urls = worker.send_query(SELECT_MIN_DOWNLOAD_URLS)
-    # for url in all_urls:
-    #     print url
-    # # for url in speedtest_urls:
-    # #     worker.send_command(INSERT_INTO_SPEEDTEST_URLS.format(url))
-    # print "done"
-    # quit()
+
     worker = AWSWorker()
     data = worker.send_query(SELECT_ALL.format(TABLE_NAME_SEMI_STRUCTURED))
+    data = data[12:]
+    data = sieve_speedtests(data, ["BEZEQ", "HOT", "OOKLA"])
     pretty_print_download_info(data)
     test_download_info_table_sanity(data)
     diff = aggregate_speed_diffs(data, rounded=True)
-    pretty_print_download_info(data[-1])
-    print diff
-    print "percent of speed-test prediction actually used:", str(round(mean(diff)*100, 2))+"%"
+    pretty_print_download_info(data[-1:])
+    besting_test = [x for x in diff if x > 1]
+    fall_behind_test = [x for x in diff if x < 1]
+    equals_test = [x for x in diff if x == 1]
+    print equals_test
+    print "percent of speed-test prediction actually used:", mean_diff(diff)+"%"
     print "number of global tests", len(data)
     print "number of small tests", len(diff)
+    print "number of times download bested prediction", len(besting_test)
+    print "percent of speed-test prediction actually used where download bested prediction:", mean_diff(besting_test)+"%"
+    print "number of times download fell behind prediction", len(fall_behind_test)
+    print "percent of speed-test prediction actually used where download fell behind prediction:", mean_diff(fall_behind_test)+"%"
+    print "number of times tests and download rates are equal:", len(equals_test)
+
     quit()
