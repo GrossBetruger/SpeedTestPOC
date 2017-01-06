@@ -1,3 +1,5 @@
+import tempfile
+
 from queries import *
 import psycopg2
 from collections import defaultdict
@@ -6,6 +8,15 @@ from datetime import datetime
 from numpy import mean
 import time
 
+FILESIZES_JSON = "filesizes_json"
+
+GOODPUT_FILES = "goodput_files"
+
+OOKLA = "OOKLA"
+
+HOT = "HOT"
+
+BEZEQ = "BEZEQ"
 
 BROWSER = "browser"
 
@@ -28,8 +39,6 @@ FILE_DOWNLOAD_START_TIME = "file_download_start_time"
 FILE_NAME = "file_name"
 
 SPEED_TEST_START_TIME = "speed_test_start_time"
-
-TEST_POSTGRESQL = "test_postgresql"
 
 SPEED_TEST_RESULT = "speed_test_result_mbs"
 SPEED_TEST_RESULT_OLD = "speed_test_result"
@@ -70,6 +79,15 @@ INNER_KEYS_OLD = [FIELD_URL,
 MIN_TEST_SIZE = 3
 
 COMPARISON_INFO_KEY = COMPARISON_INFO
+
+MICROSOFT = "test_KinectSDK"
+FIREFOX = "test_firefox"
+APPLE = "test_iTunes"
+AMAZON = "test_aws-java-sdk"
+GOOGLE = "test_google-go"
+POSTGRESQL = "test_postgresql"
+KODI = "test_kodi"
+
 
 __author__ = 'orenko'
 
@@ -264,10 +282,23 @@ def aggregate_speed_diffs(data, rounded=False):
     for row in data:
         jsn = row[1]
         for test in jsn[COMPARISON_INFO_KEY].keys():
-            speed_test_key = SPEED_TEST_RESULT if SPEED_TEST_RESULT in jsn[COMPARISON_INFO_KEY][test] else SPEED_TEST_RESULT_OLD
-            download_rate_key = FILE_DOWNLOAD_RATE if FILE_DOWNLOAD_RATE in jsn[COMPARISON_INFO_KEY][test]  else FILE_DOWNLOAD_RATE_OLD
-            actual_rate = jsn[COMPARISON_INFO_KEY][test][download_rate_key]
-            expected_rate = mBit_toKByte(jsn[COMPARISON_INFO_KEY][test][speed_test_key])
+            actual_rate = jsn[COMPARISON_INFO_KEY][test][FILE_DOWNLOAD_RATE]
+            expected_rate = mBit_toKByte(jsn[COMPARISON_INFO_KEY][test][SPEED_TEST_RESULT])
+            diffs.append(actual_rate/expected_rate)
+    if rounded:
+        return [round(x, 2) for x in diffs]
+    return diffs
+
+
+def aggregate_speed_diffs_per_download_urls(data, download_test_name, rounded=False):
+    diffs = []
+    for row in data:
+        jsn = row[1]
+        for test in jsn[COMPARISON_INFO_KEY].keys():
+            if test not in download_test_name:
+                continue
+            actual_rate = jsn[COMPARISON_INFO_KEY][test][FILE_DOWNLOAD_RATE]
+            expected_rate = mBit_toKByte(jsn[COMPARISON_INFO_KEY][test][SPEED_TEST_RESULT])
             diffs.append(actual_rate/expected_rate)
     if rounded:
         return [round(x, 2) for x in diffs]
@@ -284,16 +315,75 @@ def sieve_speedtests(data, speedtests_names):
     return [datapoint for datapoint in data if datapoint[1]["speed_test_website"] in speedtests_names]
 
 
+def sieve_days(data, days):
+    return [datapoint for datapoint in data if datapoint[-1].weekday() in days]
+
+
+def sieve_hours(data, from_hour, to_hour):
+    return [datapoint for datapoint in data if from_hour < datapoint[-1].hour < to_hour]
+
 def mean_diff(diffs):
     return str(round(mean(diffs) * 100, 2))
 
 
+def check_all_filesizes(worker, only_active=True):
+    import os
+    import requests
+    temp = tempfile.gettempdir()
+    here = os.getcwd()
+    print "tempdir:", temp
+    urls = [row[1] for row in worker.select_all(TABLE_DOWNLOAD_URLS) if row[3] == True or not only_active]
+    print "urls:"
+    print "\n".join(urls)
+    os.chdir(temp)
+
+    if not os.path.exists(GOODPUT_FILES):
+        os.mkdir(GOODPUT_FILES)
+
+    print "downloading..."
+    for url in urls:
+        with open(GOODPUT_FILES + "/" + url.split("/")[-1], "wb") as f:
+            f.write(requests.get(url).content)
+
+    download_files = os.listdir(GOODPUT_FILES)
+    os.chdir(GOODPUT_FILES)
+    files_and_sizes = {}
+    for downloaded_file in download_files:
+        files_and_sizes[downloaded_file] = os.path.getsize(downloaded_file)
+        os.remove(download_files)
+    os.chdir(here)
+    with open(FILESIZES_JSON, "r") as f:
+        old_json = json.load(f)
+        if files_and_sizes != old_json:
+            print "filesized data changed!"
+            print "old json:", old_json
+            print "new json:", files_and_sizes
+    with open(FILESIZES_JSON, "w") as f:
+        json.dump(files_and_sizes, f)
+
+
+
 if __name__ == "__main__":
+    # worker = AWSWorker()
+    # check_all_filesizes(worker, only_active=True)
+    # quit()
+    #
+    # worker = AWSWorker()
+    # for url in worker.select_all(TABLE_DOWNLOAD_URLS):
+    #     print urla
+    # quit()
+
 
     worker = AWSWorker()
     data = worker.send_query(SELECT_ALL.format(TABLE_NAME_SEMI_STRUCTURED))
     data = data[12:]
-    data = sieve_speedtests(data, ["BEZEQ", "HOT", "OOKLA"])
+    data = sieve_speedtests(data, [BEZEQ, HOT, OOKLA])
+
+
+    # data = sieve_days(data, [4,5])
+    data = sieve_hours(data, 17,24)
+    # print type(data[0][-1])
+    # quit()
     pretty_print_download_info(data)
     test_download_info_table_sanity(data)
     diff = aggregate_speed_diffs(data, rounded=True)
@@ -310,5 +400,4 @@ if __name__ == "__main__":
     print "number of times download fell behind prediction", len(fall_behind_test)
     print "percent of speed-test prediction actually used where download fell behind prediction:", mean_diff(fall_behind_test)+"%"
     print "number of times tests and download rates are equal:", len(equals_test)
-
     quit()
