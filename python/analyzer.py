@@ -41,6 +41,9 @@ def get_website_average_ratio(website, tests):
     comparisons = get_comparisons(tests)
     filtered_comparisons = [sieve_websites(website, comparison) for comparison in comparisons]
     subtests = list(chain(*[subtest for subtest in [comparison for comparison in filtered_comparisons if comparison]]))
+    if len(subtests) == 0:
+        raise Exception("no subtests found!")
+    print "number of subtests:", len(subtests)
     ratios = [compare(subtest, debug=False) for subtest in subtests]
     return mean(ratios)
 
@@ -53,4 +56,9 @@ def main():
 
 if __name__ == "__main__":
     while True:
-        main()
+        try:
+            print
+            main()
+            print
+        except Exception:
+            print "something went wrong... is Dango typing?"
