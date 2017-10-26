@@ -2,7 +2,7 @@ import requests
 import pprint
 from numpy import mean
 from itertools import chain
-
+from collections import Counter
 
 SPEED_TEST_IDENTIFIER = 'speedTestIdentifier'
 
@@ -48,13 +48,25 @@ def get_website_average_ratio(website, tests):
     return mean(ratios)
 
 
+def count_ips():
+    counter = Counter()
+    ips = [test.get("systemInfo").get("publicIP") for test in get_tests()]
+    for ip in ips:
+        counter.update([ip])
+    for k, v in dict(counter).iteritems():
+        print k, v
+
 
 def main():
     website = raw_input("choose website... (atnt, hot, etc.)\n")
     ratios =  get_website_average_ratio(website, get_tests())
     print "{} ratio:".format(website), ratios
 
+
 if __name__ == "__main__":
+    print "public ip count:"
+    count_ips()
+    print
     while True:
         try:
             print
