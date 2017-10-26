@@ -1,5 +1,12 @@
 import requests
 import pprint
+from numpy import mean
+from itertools import chain
+
+
+SPEED_TEST_IDENTIFIER = 'speedTestIdentifier'
+
+SPEED_TEST_WEB_SITE = 'speedTestWebSite'
 
 GET_TESTS_URL = "http://ec2-35-156-136-73.eu-central-1.compute.amazonaws.com:8080/central/all-test"
 
@@ -12,24 +19,38 @@ def get_comparisons(tests):
     return [t.get("comparisonInfoTests") for t in tests]
 
 
-
-def compare(filedownload_info, debug=True):
-    download_rate_KBs = filedownload_info.get('fileDownloadInfo').get('fileDownloadRateKBPerSec')
-    speedtest_rate_KBs =  filedownload_info.get('speedTestWebSite').get('downloadRateInKBps')
+def compare(test, debug=True):
+    download_rate_KBs = test.get('fileDownloadInfo').get('fileDownloadRateKBPerSec')
+    speedtest_rate_KBs = test.get(SPEED_TEST_WEB_SITE).get('downloadRateInKBps')
     ratio = float(download_rate_KBs) / speedtest_rate_KBs
     if debug:
-        print "website:", filedownload_info.get('speedTestWebSite').get('speedTestIdentifier')
+        print "website:", test.get(SPEED_TEST_WEB_SITE).get(SPEED_TEST_IDENTIFIER)
         print "download rate:", download_rate_KBs
         print "speedtest rate", speedtest_rate_KBs
         print "ratio:", ratio
     return ratio
 
 
+def sieve_websites(speedtest_website, test):
+    return [comparison for comparison in test
+            if comparison.get(SPEED_TEST_WEB_SITE)
+            .get(SPEED_TEST_IDENTIFIER) == speedtest_website]
+
+
+def get_website_average_ratio(website, tests):
+    comparisons = get_comparisons(tests)
+    filtered_comparisons = [sieve_websites(website, comparison) for comparison in comparisons]
+    subtests = list(chain(*[subtest for subtest in [comparison for comparison in filtered_comparisons if comparison]]))
+    ratios = [compare(subtest, debug=False) for subtest in subtests]
+    return mean(ratios)
+
+
+
+def main():
+    website = raw_input("choose website... (atnt, hot, etc.)\n")
+    ratios =  get_website_average_ratio(website, get_tests())
+    print "{} ratio:".format(website), ratios
+
 if __name__ == "__main__":
-    pp = pprint.PrettyPrinter(indent=1)
-    for comparison in get_comparisons(get_tests()[-3:]):
-        for test in comparison:
-            pp.pprint(test)
-            compare(test)
-            print
-        print "-------------------\n"*3
+    while True:
+        main()
