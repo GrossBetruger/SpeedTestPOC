@@ -29,11 +29,11 @@ def create_json(encoded_img, dump_filename):
         json.dump(jsn, f)
 
 
-def askGoogle():
+def askGoogle(key):
     data = open('vision.json', 'rb').read()
     print data
     response = requests.post(
-        url='https://vision.googleapis.com/v1/images:annotate?key=AIzaSyBrkKNc_7vNBvlY6P83atDavKvZGJKQTms',
+        url='https://vision.googleapis.com/v1/images:annotate?key={}'.format(key),
         data=data,
         headers={'Content-Type': 'application/json'})
     return response
@@ -46,6 +46,7 @@ def extract_float_from_response(google_response):
 
 encoded = encode_image(sys.argv[1])
 create_json(encoded, 'vision.json')
-r = askGoogle()
+r = askGoogle(raw_input("enter google vision api key:"))
+
 
 print extract_float_from_response(r.json())
