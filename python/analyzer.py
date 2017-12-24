@@ -1,18 +1,30 @@
+import zipfile
+import os
 import requests
 import pprint
 from numpy import mean
 from itertools import chain
 from collections import Counter
 
+EXCTRACTED_TOKEN_PATH = "token.aws"
+
 SPEED_TEST_IDENTIFIER = 'speedTestIdentifier'
 
 SPEED_TEST_WEB_SITE = 'speedTestWebSite'
 
-GET_TESTS_URL = "http://ec2-35-156-136-73.eu-central-1.compute.amazonaws.com:8080/central/all-test"
+GET_TESTS_URL = "http://ec2-18-196-42-127.eu-central-1.compute.amazonaws.com:8008/central/all-tests"
+
+
+def decrypt_token(token_path):
+    zipfile.ZipFile(token_path).extractall(path=".", pwd=raw_input("password?\n"))
+    with open(EXCTRACTED_TOKEN_PATH) as f:
+        token = f.read().strip()
+    os.unlink(EXCTRACTED_TOKEN_PATH)
+    return token
 
 
 def get_tests():
-    return requests.get(GET_TESTS_URL).json()
+    return requests.get(GET_TESTS_URL, headers={"Authorization": TOKEN}).json()
 
 
 def get_comparisons(tests):
@@ -64,6 +76,9 @@ def main():
 
 
 if __name__ == "__main__":
+    # password = raw_input("enter password\n")
+    # print password
+    TOKEN = decrypt_token("token.zip")
     print "public ip count:"
     count_ips()
     print
