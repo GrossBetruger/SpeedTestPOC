@@ -87,5 +87,5 @@ if __name__ == "__main__":
             print
             main()
             print
-        except Exception:
-            print "something went wrong... is Dango typing?"
+        except Exception as e:
+            print "something went wrong... is Dango typing? ({})".format(e.message or e)
