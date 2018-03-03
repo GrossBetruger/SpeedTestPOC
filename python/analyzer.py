@@ -12,8 +12,7 @@ SPEED_TEST_IDENTIFIER = 'speedTestIdentifier'
 
 SPEED_TEST_WEB_SITE = 'speedTestWebSite'
 
-GET_TESTS_URL = "http://ec2-18-196-42-127.eu-central-1.compute.amazonaws.com:8008/central/all-tests"
-
+GET_TESTS_URL = "http://ec2-52-28-182-127.eu-central-1.compute.amazonaws.com:8008/central/all-tests"
 
 def decrypt_token(token_path):
     zipfile.ZipFile(token_path).extractall(path=".", pwd=raw_input("password?\n"))
@@ -24,7 +23,9 @@ def decrypt_token(token_path):
 
 
 def get_tests():
-    return requests.get(GET_TESTS_URL, headers={"Authorization": TOKEN}).json()
+    return requests.get(GET_TESTS_URL, 
+            headers={"Authorization": TOKEN,
+                    "Case-Yellow-User": "oren"}).json()
 
 
 def get_comparisons(tests):
@@ -69,6 +70,11 @@ def count_ips():
         print k, v
 
 
+def readtoken(token_path):
+    with open(token_path) as f:
+        return f.read().strip()
+
+
 def main():
     website = raw_input("choose website... (atnt, hot, etc.)\n")
     ratios =  get_website_average_ratio(website, get_tests())
@@ -78,7 +84,7 @@ def main():
 if __name__ == "__main__":
     # password = raw_input("enter password\n")
     # print password
-    TOKEN = decrypt_token("token.zip")
+    TOKEN = readtoken("/home/shanip/.token")# decrypt_token("token.zip")
     print "public ip count:"
     count_ips()
     print
