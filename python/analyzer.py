@@ -1,3 +1,4 @@
+import json
 import zipfile
 import os
 import requests
@@ -5,6 +6,10 @@ import pprint
 from numpy import mean
 from itertools import chain
 from collections import Counter
+
+TESTS_CACHE = "tests_cache"
+
+TOKEN_PATH = "/home/shanip/.token"
 
 EXCTRACTED_TOKEN_PATH = "token.aws"
 
@@ -14,6 +19,12 @@ SPEED_TEST_WEB_SITE = 'speedTestWebSite'
 
 GET_TESTS_URL = "http://ec2-52-28-182-127.eu-central-1.compute.amazonaws.com:8008/central/all-tests"
 
+try:
+    from local_settings import *
+except ImportError:
+    print "local settings not found"
+
+
 def decrypt_token(token_path):
     zipfile.ZipFile(token_path).extractall(path=".", pwd=raw_input("password?\n"))
     with open(EXCTRACTED_TOKEN_PATH) as f:
@@ -22,9 +33,9 @@ def decrypt_token(token_path):
     return token
 
 
-def get_tests():
+def get_tests(token):
     return requests.get(GET_TESTS_URL, 
-            headers={"Authorization": TOKEN,
+            headers={"Authorization": token,
                     "Case-Yellow-User": "oren"}).json()
 
 
@@ -75,6 +86,16 @@ def readtoken(token_path):
         return f.read().strip()
 
 
+def cache_tests(tests, cache_path):
+    with open(cache_path, "w") as f:
+        json.dump(tests, f)
+
+
+def read_tests_from_cache(cache_path):
+    with open(cache_path) as f:
+        return json.load(f)
+
+
 def main():
     website = raw_input("choose website... (atnt, hot, etc.)\n")
     ratios =  get_website_average_ratio(website, get_tests())
@@ -82,9 +103,19 @@ def main():
 
 
 if __name__ == "__main__":
-    # password = raw_input("enter password\n")
-    # print password
-    TOKEN = readtoken("/home/shanip/.token")# decrypt_token("token.zip")
+    TOKEN = readtoken(TOKEN_PATH)
+
+    from_cache = raw_input("read from cache?\n")
+    from_cache = True if from_cache.lower() == "yes" else False
+    if from_cache:
+        tests = read_tests_from_cache(TESTS_CACHE)
+    else:
+        tests = get_tests(TOKEN)
+        cache_tests(tests, TESTS_CACHE)
+
+    print tests
+    quit()
+
     print "public ip count:"
     count_ips()
     print
