@@ -96,10 +96,17 @@ def read_tests_from_cache(cache_path):
         return json.load(f)
 
 
+def sieve_users(tests, users):
+    return [test for test in tests if test.get("user") and test.get("user") in users]
+
+
+
 def main():
     website = raw_input("choose website... (atnt, hot, etc.)\n")
     ratios =  get_website_average_ratio(website, get_tests())
     print "{} ratio:".format(website), ratios
+
+
 
 
 if __name__ == "__main__":
@@ -113,16 +120,17 @@ if __name__ == "__main__":
         tests = get_tests(TOKEN)
         cache_tests(tests, TESTS_CACHE)
 
-    print tests
+    c = Counter()
+    c.update([x.get('user') for x in tests if x.get('user')])
+    print c
+    for user in ["admin", "oren"]:
+        print "stas for user:", user.upper()
+        for website in ["hot", "bezeq", "ookla", "atnt", "speedof", "fast"]:
+            print "stats for website:", website
+            try:
+                print get_website_average_ratio(website, sieve_users(tests, [user]))
+                print
+            except Exception as e:
+                print "something went wrong... is Dango typing? ({})".format(e.message or e)
+                print
     quit()
-
-    print "public ip count:"
-    count_ips()
-    print
-    while True:
-        try:
-            print
-            main()
-            print
-        except Exception as e:
-            print "something went wrong... is Dango typing? ({})".format(e.message or e)
