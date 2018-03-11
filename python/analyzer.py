@@ -1,8 +1,9 @@
 import json
 import zipfile
 import os
+import datetime
 import requests
-import pprint
+
 from numpy import mean
 from itertools import chain
 from collections import Counter
@@ -100,13 +101,20 @@ def sieve_users(tests, users):
     return [test for test in tests if test.get("user") and test.get("user") in users]
 
 
+def get_weekday_from_test(test):
+    start_time = test['startTime'] / 1000
+    stamp = datetime.datetime.fromtimestamp(start_time)
+    return stamp.weekday()
+
+
+def sieve_weekday(tests, weekday):
+    return [test for test in tests if get_weekday_from_test(test) == weekday]
+
 
 def main():
     website = raw_input("choose website... (atnt, hot, etc.)\n")
     ratios =  get_website_average_ratio(website, get_tests())
     print "{} ratio:".format(website), ratios
-
-
 
 
 if __name__ == "__main__":
@@ -122,15 +130,24 @@ if __name__ == "__main__":
 
     c = Counter()
     c.update([x.get('user') for x in tests if x.get('user')])
+
     print c
     for user in ["admin", "oren"]:
         print "stas for user:", user.upper()
         for website in ["hot", "bezeq", "ookla", "atnt", "speedof", "fast"]:
             print "stats for website:", website
             try:
-                print get_website_average_ratio(website, sieve_users(tests, [user]))
-                print
+                user_tests = sieve_users(tests, [user])
+                print get_website_average_ratio(website, user_tests)
+
             except Exception as e:
                 print "something went wrong... is Dango typing? ({})".format(e.message or e)
                 print
+
+    timestamped_tests = [test for test in tests if test.get("startTime")]
+    print
+    print "sunday tests", len(sieve_weekday(timestamped_tests, 6))
+    print "saturday tests", len(sieve_weekday(timestamped_tests, 5))
+    print "friday tests", len(sieve_weekday(timestamped_tests, 4))
+
     quit()
