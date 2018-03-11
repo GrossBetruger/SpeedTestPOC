@@ -152,9 +152,10 @@ if __name__ == "__main__":
 
     c = Counter()
     c.update([x.get('user') for x in tests if x.get('user')])
-
-    print c
-    for user in USERS:
+    user_count = dict(c)
+    print user_count
+    users = user_count.keys()
+    for user in users:
         print "stas for user:", user.upper()
         for website in ["hot", "bezeq", "ookla", "atnt", "speedof", "fast"]:
             print "stats for website:", website
