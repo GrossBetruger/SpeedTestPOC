@@ -8,6 +8,8 @@ from numpy import mean
 from itertools import chain
 from collections import Counter
 
+USERS = ["admin", "oren", "eli"]
+
 TESTS_CACHE = "tests_cache"
 
 TOKEN_PATH = "/home/shanip/.token"
@@ -54,6 +56,26 @@ def compare(test, debug=True):
         print "speedtest rate", speedtest_rate_KBs
         print "ratio:", ratio
     return ratio
+
+
+def KBps_to_mbps(KBps):
+    return KBps * 0.008
+
+
+def get_average_speed(tests):
+    comparisons = get_comparisons(tests)
+    comparisons = list(chain(*[subtest for subtest in comparisons]))
+    return KBps_to_mbps(mean([comparison.get('fileDownloadInfo').get('fileDownloadRateKBPerSec')
+                 for comparison in comparisons]))
+
+
+def get_website_average_result(website, tests):
+    comparisons = get_comparisons(tests)
+    filtered_comparisons = [sieve_websites(website, comparison) for comparison in comparisons]
+    subtests = list(chain(*[subtest for subtest in [comparison for comparison in filtered_comparisons if comparison]]))
+    return KBps_to_mbps(mean([subtest.get(SPEED_TEST_WEB_SITE).get('downloadRateInKBps')
+                 for subtest in subtests]))
+
 
 
 def sieve_websites(speedtest_website, test):
@@ -132,22 +154,34 @@ if __name__ == "__main__":
     c.update([x.get('user') for x in tests if x.get('user')])
 
     print c
-    for user in ["admin", "oren"]:
+    for user in USERS:
         print "stas for user:", user.upper()
         for website in ["hot", "bezeq", "ookla", "atnt", "speedof", "fast"]:
             print "stats for website:", website
             try:
                 user_tests = sieve_users(tests, [user])
                 print get_website_average_ratio(website, user_tests)
-
             except Exception as e:
                 print "something went wrong... is Dango typing? ({})".format(e.message or e)
                 print
+        try:
+            print "user average speed (mbps):", get_average_speed(user_tests)
+            print "user average speedtest result HOT (mbps):", \
+                get_website_average_result("hot", user_tests)
+            print "user average speedtest result BEZEQ (mbps):", \
+                get_website_average_result("bezeq", user_tests)
+            print "user average speedtest result NETFLIX (mbps):", \
+                get_website_average_result("fast", user_tests)
+            print
+        except Exception as e:
+            print "something went wrong... is Dango typing? ({})".format(e.message or e)
+            print
 
     timestamped_tests = [test for test in tests if test.get("startTime")]
     print
     print "sunday tests", len(sieve_weekday(timestamped_tests, 6))
     print "saturday tests", len(sieve_weekday(timestamped_tests, 5))
     print "friday tests", len(sieve_weekday(timestamped_tests, 4))
+
 
     quit()
