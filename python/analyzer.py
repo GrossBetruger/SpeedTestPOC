@@ -153,7 +153,10 @@ if __name__ == "__main__":
     c = Counter()
     c.update([x.get('user') for x in tests if x.get('user')])
     user_count = dict(c)
-    print user_count
+    print "\nuser count:"
+    for k, v in user_count.items():
+        print k, ":", v
+    print
     users = user_count.keys()
     for user in users:
         print "stas for user:", user.upper()
@@ -183,6 +186,10 @@ if __name__ == "__main__":
     print "sunday tests", len(sieve_weekday(timestamped_tests, 6))
     print "saturday tests", len(sieve_weekday(timestamped_tests, 5))
     print "friday tests", len(sieve_weekday(timestamped_tests, 4))
+    print "thursday tests", len(sieve_weekday(timestamped_tests, 3))
+    print "wednesday tests", len(sieve_weekday(timestamped_tests, 2))
+    print "tuesday tests", len(sieve_weekday(timestamped_tests, 1))
+    print "monday tests", len(sieve_weekday(timestamped_tests, 0))
 
 
     quit()
