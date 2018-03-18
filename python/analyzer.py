@@ -176,7 +176,11 @@ if __name__ == "__main__":
                 get_website_average_result("bezeq", user_tests)
             print "user average speedtest result NETFLIX (mbps):", \
                 get_website_average_result("fast", user_tests)
+            user_sys_info = user_tests[-1].get("systemInfo")
+            print "user Infra:", user_sys_info.get("infrastructure")
+            print "user ISP:", user_sys_info.get("isp")
             print
+            
         except Exception as e:
             print "something went wrong... is Dango typing? ({})".format(e.message or e)
             print
