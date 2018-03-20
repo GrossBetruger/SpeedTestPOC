@@ -180,13 +180,18 @@ if __name__ == "__main__":
             print "user Infra:", user_sys_info.get("infrastructure")
             print "user ISP:", user_sys_info.get("isp")
             print
-            
+
         except Exception as e:
             print "something went wrong... is Dango typing? ({})".format(e.message or e)
             print
 
     timestamped_tests = [test for test in tests if test.get("startTime")]
     print
+
+    for website in ["fast", "atnt", "speedof", "hot", "bezeq", "ookla"]:
+        print "global average for website:", website
+        print get_website_average_ratio(website, tests)
+    print 
     print "sunday tests", len(sieve_weekday(timestamped_tests, 6))
     print "saturday tests", len(sieve_weekday(timestamped_tests, 5))
     print "friday tests", len(sieve_weekday(timestamped_tests, 4))
