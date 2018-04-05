@@ -167,9 +167,13 @@ if __name__ == "__main__":
         print k, ":", v
     print
     users = user_count.keys()
+    websites = set([test.get("speedTestWebsiteIdentifier")
+                    for test in tests
+                    if test.get("speedTestWebsiteIdentifier")])
+
     for user in users:
         print "stas for user:", user.upper()
-        for website in ["hot", "bezeq", "ookla", "atnt", "speedof", "fast"]:
+        for website in websites:
             print "stats for website:", website
             try:
                 user_tests = sieve_users(tests, [user])
@@ -198,7 +202,7 @@ if __name__ == "__main__":
     timestamped_tests = [test for test in tests if test.get("startTime")]
     print
 
-    for website in ["fast", "atnt", "speedof", "hot", "bezeq", "ookla"]:
+    for website in websites:
         print "global average for website:", website
         print get_website_average_ratio(website, tests)
         print "last test:", get_latest_test_time(sieve_tests_by_website(tests, website))
