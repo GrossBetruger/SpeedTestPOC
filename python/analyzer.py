@@ -71,22 +71,26 @@ def get_average_speed(tests):
 
 def get_website_average_result(website, tests):
     comparisons = get_comparisons(tests)
-    filtered_comparisons = [sieve_websites(website, comparison) for comparison in comparisons]
+    filtered_comparisons = [sieve_comparisons_by_websites(website, comparison) for comparison in comparisons]
     subtests = list(chain(*[subtest for subtest in [comparison for comparison in filtered_comparisons if comparison]]))
     return KBps_to_mbps(mean([subtest.get(SPEED_TEST_WEB_SITE).get('downloadRateInKBps')
                  for subtest in subtests]))
 
 
 
-def sieve_websites(speedtest_website, test):
+def sieve_comparisons_by_websites(speedtest_website, test):
     return [comparison for comparison in test
             if comparison.get(SPEED_TEST_WEB_SITE)
             .get(SPEED_TEST_IDENTIFIER) == speedtest_website]
 
 
+def sieve_tests_by_website(tests, website):
+    return [test for test in tests if test.get('speedTestWebsiteIdentifier') == website]
+
+
 def get_website_average_ratio(website, tests):
     comparisons = get_comparisons(tests)
-    filtered_comparisons = [sieve_websites(website, comparison) for comparison in comparisons]
+    filtered_comparisons = [sieve_comparisons_by_websites(website, comparison) for comparison in comparisons]
     subtests = list(chain(*[subtest for subtest in [comparison for comparison in filtered_comparisons if comparison]]))
     if len(subtests) == 0:
         raise Exception("no subtests found!")
@@ -139,6 +143,11 @@ def main():
     print "{} ratio:".format(website), ratios
 
 
+def get_latest_test_time(tests):
+    last_test = max([test['endTime'] / 1000 for test in tests if test.get('endTime')])
+    return datetime.datetime.fromtimestamp(last_test)
+
+
 if __name__ == "__main__":
     TOKEN = readtoken(TOKEN_PATH)
 
@@ -179,6 +188,7 @@ if __name__ == "__main__":
             user_sys_info = user_tests[-1].get("systemInfo")
             print "user Infra:", user_sys_info.get("infrastructure")
             print "user ISP:", user_sys_info.get("isp")
+            print "user last test:", get_latest_test_time(user_tests)
             print
 
         except Exception as e:
@@ -191,7 +201,9 @@ if __name__ == "__main__":
     for website in ["fast", "atnt", "speedof", "hot", "bezeq", "ookla"]:
         print "global average for website:", website
         print get_website_average_ratio(website, tests)
-    print 
+        print "last test:", get_latest_test_time(sieve_tests_by_website(tests, website))
+        print
+
     print "sunday tests", len(sieve_weekday(timestamped_tests, 6))
     print "saturday tests", len(sieve_weekday(timestamped_tests, 5))
     print "friday tests", len(sieve_weekday(timestamped_tests, 4))
@@ -200,5 +212,5 @@ if __name__ == "__main__":
     print "tuesday tests", len(sieve_weekday(timestamped_tests, 1))
     print "monday tests", len(sieve_weekday(timestamped_tests, 0))
 
-
+    # print get_latest_test_time(sieve_tests_by_website(tests, "speedof"))
     quit()
