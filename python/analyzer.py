@@ -3,10 +3,13 @@ import zipfile
 import os
 import datetime
 import requests
+import shutil
 
 from numpy import mean
 from itertools import chain
 from collections import Counter
+
+BACKUP = "backup"
 
 USERS = ["admin", "oren", "eli"]
 
@@ -146,6 +149,13 @@ def main():
 def get_latest_test_time(tests):
     last_test = max([test['endTime'] / 1000 for test in tests if test.get('endTime')])
     return datetime.datetime.fromtimestamp(last_test)
+
+
+def backup_tests():
+    stamp = "".join(str(datetime.datetime.now()).split(".")[:-1]).replace(" ", "_")
+    backup_file_path = os.path.join(BACKUP, TESTS_CACHE + "_" + stamp)
+    shutil.copy(TESTS_CACHE, backup_file_path)
+    print "copied tests backup to: {}".format(backup_file_path)
 
 
 if __name__ == "__main__":
