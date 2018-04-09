@@ -80,11 +80,19 @@ def get_website_average_result(website, tests):
                  for subtest in subtests]))
 
 
+def get_file_average_result(file_name, tests):
+    comparisons = get_comparisons(tests)
+
 
 def sieve_comparisons_by_websites(speedtest_website, test):
     return [comparison for comparison in test
             if comparison.get(SPEED_TEST_WEB_SITE)
             .get(SPEED_TEST_IDENTIFIER) == speedtest_website]
+
+
+def sieve_comparisons_by_downloaded_file(file_name, test):
+    return [comparison for comparison in test
+            if get_downloaded_file_name(comparison) == file_name]
 
 
 def sieve_tests_by_website(tests, website):
@@ -100,6 +108,18 @@ def get_website_average_ratio(website, tests):
     print "number of subtests:", len(subtests)
     ratios = [compare(subtest, debug=False) for subtest in subtests]
     return mean(ratios)
+
+
+def get_downloaded_file_average_ratio(file_name, tests):
+    comparisons = get_comparisons(tests)
+    filtered_comparisons = [sieve_comparisons_by_downloaded_file(file_name, comparison) for comparison in comparisons]
+    subtests = list(chain(*[subtest for subtest in [comparison for comparison in filtered_comparisons if comparison]]))
+    if len(subtests) == 0:
+        raise Exception("no subtests found!")
+    print "number of subtests:", len(subtests)
+    ratios = [compare(subtest, debug=False) for subtest in subtests]
+    return mean(ratios)
+
 
 
 def count_ips():
@@ -158,6 +178,23 @@ def backup_tests():
     print "copied tests backup to: {}".format(backup_file_path)
 
 
+def get_downloaded_file_name(comparison):
+    return comparison.get("fileDownloadInfo").get("fileName")
+
+
+def get_all_websites(tests):
+    return set([test.get("speedTestWebsiteIdentifier")
+                    for test in tests
+                    if test.get("speedTestWebsiteIdentifier")])
+
+
+def get_all_file_names(tests):
+    comparisons = get_comparisons(tests)
+    subtests = list(chain(*[subtest for subtest in [comparison for comparison in comparisons]]))
+    return set(get_downloaded_file_name(subtest) for subtest in subtests)
+
+
+
 if __name__ == "__main__":
     TOKEN = readtoken(TOKEN_PATH)
 
@@ -177,9 +214,7 @@ if __name__ == "__main__":
         print k, ":", v
     print
     users = user_count.keys()
-    websites = set([test.get("speedTestWebsiteIdentifier")
-                    for test in tests
-                    if test.get("speedTestWebsiteIdentifier")])
+    websites = get_all_websites(tests)
 
     for user in users:
         print "stas for user:", user.upper()
@@ -226,5 +261,9 @@ if __name__ == "__main__":
     print "tuesday tests", len(sieve_weekday(timestamped_tests, 1))
     print "monday tests", len(sieve_weekday(timestamped_tests, 0))
 
-    # print get_latest_test_time(sieve_tests_by_website(tests, "speedof"))
+    print
+    file_names = get_all_file_names(tests)
+    for file_name in file_names:
+        print "ratio for downloaded file: {}".format(file_name), get_downloaded_file_average_ratio(file_name, tests)
+
     quit()
