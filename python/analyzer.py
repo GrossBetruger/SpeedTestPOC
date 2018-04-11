@@ -242,7 +242,7 @@ if __name__ == "__main__":
 
         except Exception as e:
             print "something went wrong... is Dango typing? ({})".format(e.message or e)
-            print
+
 
     timestamped_tests = [test for test in tests if test.get("startTime")]
     print
