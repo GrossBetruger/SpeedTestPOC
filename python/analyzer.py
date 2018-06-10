@@ -28,11 +28,11 @@ GET_TESTS_URL = "http://ec2-52-28-182-127.eu-central-1.compute.amazonaws.com:800
 try:
     from local_settings import *
 except ImportError:
-    print "local settings not found"
+    print("local settings not found")
 
 
 def decrypt_token(token_path):
-    zipfile.ZipFile(token_path).extractall(path=".", pwd=raw_input("password?\n"))
+    zipfile.ZipFile(token_path).extractall(path=".", pwd=input("password?\n"))
     with open(EXCTRACTED_TOKEN_PATH) as f:
         token = f.read().strip()
     os.unlink(EXCTRACTED_TOKEN_PATH)
@@ -54,10 +54,10 @@ def compare(test, debug=True):
     speedtest_rate_KBs = test.get(SPEED_TEST_WEB_SITE).get('downloadRateInKBps')
     ratio = float(download_rate_KBs) / speedtest_rate_KBs
     if debug:
-        print "website:", test.get(SPEED_TEST_WEB_SITE).get(SPEED_TEST_IDENTIFIER)
-        print "download rate:", download_rate_KBs
-        print "speedtest rate", speedtest_rate_KBs
-        print "ratio:", ratio
+        print("website:", test.get(SPEED_TEST_WEB_SITE).get(SPEED_TEST_IDENTIFIER))
+        print("download rate:", download_rate_KBs)
+        print("speedtest rate", speedtest_rate_KBs)
+        print("ratio:", ratio)
     return ratio
 
 
@@ -105,7 +105,7 @@ def get_website_average_ratio(website, tests):
     subtests = list(chain(*[subtest for subtest in [comparison for comparison in filtered_comparisons if comparison]]))
     if len(subtests) == 0:
         raise Exception("no subtests found!")
-    print "number of subtests:", len(subtests)
+    print("number of subtests:", len(subtests))
     ratios = [compare(subtest, debug=False) for subtest in subtests]
     return mean(ratios)
 
@@ -116,7 +116,7 @@ def get_downloaded_file_average_ratio(file_name, tests):
     subtests = list(chain(*[subtest for subtest in [comparison for comparison in filtered_comparisons if comparison]]))
     if len(subtests) == 0:
         raise Exception("no subtests found!")
-    print "number of subtests:", len(subtests)
+    print("number of subtests:", len(subtests))
     ratios = [compare(subtest, debug=False) for subtest in subtests]
     return mean(ratios)
 
@@ -128,7 +128,7 @@ def count_ips():
     for ip in ips:
         counter.update([ip])
     for k, v in dict(counter).iteritems():
-        print k, v
+        print(k, v)
 
 
 def readtoken(token_path):
@@ -161,9 +161,9 @@ def sieve_weekday(tests, weekday):
 
 
 def main():
-    website = raw_input("choose website... (atnt, hot, etc.)\n")
+    website = input("choose website... (atnt, hot, etc.)\n")
     ratios =  get_website_average_ratio(website, get_tests())
-    print "{} ratio:".format(website), ratios
+    print("{} ratio:".format(website), ratios)
 
 
 def get_latest_test_time(tests):
@@ -175,7 +175,7 @@ def backup_tests():
     stamp = "".join(str(datetime.datetime.now()).split(".")[:-1]).replace(" ", "_")
     backup_file_path = os.path.join(BACKUP, TESTS_CACHE + "_" + stamp)
     shutil.copy(TESTS_CACHE, backup_file_path)
-    print "copied tests backup to: {}".format(backup_file_path)
+    print("copied tests backup to: {}".format(backup_file_path))
 
 
 def get_downloaded_file_name(comparison):
@@ -198,7 +198,7 @@ def get_all_file_names(tests):
 if __name__ == "__main__":
     TOKEN = readtoken(TOKEN_PATH)
 
-    from_cache = raw_input("read from cache?\n")
+    from_cache = input("read from cache?\n")
     from_cache = True if from_cache.lower() == "yes" else False
     if from_cache:
         tests = read_tests_from_cache(TESTS_CACHE)
@@ -209,61 +209,58 @@ if __name__ == "__main__":
     c = Counter()
     c.update([x.get('user') for x in tests if x.get('user')])
     user_count = dict(c)
-    print "\nuser count:"
+    print("\nuser count:")
     for k, v in user_count.items():
-        print k, ":", v
+        print(k, ":", v)
     print
     users = user_count.keys()
     websites = get_all_websites(tests)
 
     for user in users:
-        print "stas for user:", user.upper()
+        print("stas for user:", user.upper())
         for website in websites:
-            print "stats for website:", website
+            print("stats for website:", website)
             try:
                 user_tests = sieve_users(tests, [user])
-                print get_website_average_ratio(website, user_tests)
+                print(get_website_average_ratio(website, user_tests))
             except Exception as e:
-                print "something went wrong... is Dango typing? ({})".format(e.message or e)
+                print("something went wrong... is Dango typing? ({})".format(str(e)))
                 print
         try:
-            print "user average speed (mbps):", get_average_speed(user_tests)
-            print "user average speedtest result HOT (mbps):", \
-                get_website_average_result("hot", user_tests)
-            print "user average speedtest result BEZEQ (mbps):", \
-                get_website_average_result("bezeq", user_tests)
-            print "user average speedtest result NETFLIX (mbps):", \
-                get_website_average_result("fast", user_tests)
+            print("user average speed (mbps):", get_average_speed(user_tests))
+            print("user average speedtest result HOT (mbps):", 
+                get_website_average_result("hot", user_tests))
+            print("user average speedtest result BEZEQ (mbps):",
+                get_website_average_result("bezeq", user_tests))
+            print("user average speedtest result NETFLIX (mbps):", 
+                get_website_average_result("fast", user_tests))
             user_sys_info = user_tests[-1].get("systemInfo")
-            print "user Infra:", user_sys_info.get("infrastructure")
-            print "user ISP:", user_sys_info.get("isp")
-            print "user last test:", get_latest_test_time(user_tests)
-            print
-
+            print("user Infra:", user_sys_info.get("infrastructure"))
+            print("user ISP:", user_sys_info.get("isp"))
+            print("user last test:", get_latest_test_time(user_tests))
+            print()
         except Exception as e:
-            print "something went wrong... is Dango typing? ({})".format(e.message or e)
+            print("something went wrong... is Dango typing? ({})".format(str(e)))
 
 
     timestamped_tests = [test for test in tests if test.get("startTime")]
-    print
-
+    print()
     for website in websites:
-        print "global average for website:", website
-        print get_website_average_ratio(website, tests)
-        print "last test:", get_latest_test_time(sieve_tests_by_website(tests, website))
-        print
+        print("global average for website:", website)
+        print(get_website_average_ratio(website, tests))
+        print("last test:", get_latest_test_time(sieve_tests_by_website(tests, website)))
+        print()
+    print("sunday tests", len(sieve_weekday(timestamped_tests, 6)))
+    print("saturday tests", len(sieve_weekday(timestamped_tests, 5)))
+    print("friday tests", len(sieve_weekday(timestamped_tests, 4)))
+    print("thursday tests", len(sieve_weekday(timestamped_tests, 3)))
+    print("wednesday tests", len(sieve_weekday(timestamped_tests, 2)))
+    print("tuesday tests", len(sieve_weekday(timestamped_tests, 1)))
+    print("monday tests", len(sieve_weekday(timestamped_tests, 0)))
 
-    print "sunday tests", len(sieve_weekday(timestamped_tests, 6))
-    print "saturday tests", len(sieve_weekday(timestamped_tests, 5))
-    print "friday tests", len(sieve_weekday(timestamped_tests, 4))
-    print "thursday tests", len(sieve_weekday(timestamped_tests, 3))
-    print "wednesday tests", len(sieve_weekday(timestamped_tests, 2))
-    print "tuesday tests", len(sieve_weekday(timestamped_tests, 1))
-    print "monday tests", len(sieve_weekday(timestamped_tests, 0))
-
-    print
+    print()
     file_names = get_all_file_names(tests)
     for file_name in file_names:
-        print "ratio for downloaded file: {}".format(file_name), get_downloaded_file_average_ratio(file_name, tests)
+        print("ratio for downloaded file: {}".format(file_name), get_downloaded_file_average_ratio(file_name, tests))
 
     quit()
