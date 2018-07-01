@@ -23,8 +23,7 @@ SPEED_TEST_IDENTIFIER = 'speedTestIdentifier'
 
 SPEED_TEST_WEB_SITE = 'speedTestWebSite'
 
-GET_TESTS_URL = "http://ec2-52-28-182-127.eu-central-1.compute.amazonaws.com:8008/central/all-tests"
-
+GET_TESTS_URL = "http://servile.live:8008/central/all-tests"
 try:
     from local_settings import *
 except ImportError:
