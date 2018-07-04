@@ -215,6 +215,7 @@ if __name__ == "__main__":
     users = user_count.keys()
     websites = get_all_websites(tests)
 
+    all_user_averages = []
     for user in users:
         print("stas for user:", user.upper())
         for website in websites:
@@ -226,7 +227,9 @@ if __name__ == "__main__":
                 print("something went wrong... is Dango typing? ({})".format(str(e)))
                 print
         try:
-            print("user average speed (mbps):", get_average_speed(user_tests))
+            user_avg = get_average_speed(user_tests)
+            all_user_averages.append(user_avg)
+            print("user average speed (mbps):", user_avg)
             print("user average speedtest result HOT (mbps):", 
                 get_website_average_result("hot", user_tests))
             print("user average speedtest result BEZEQ (mbps):",
@@ -241,7 +244,8 @@ if __name__ == "__main__":
         except Exception as e:
             print("something went wrong... is Dango typing? ({})".format(str(e)))
 
-
+    print("all users average speed".upper(), mean(all_user_averages), "mbps")
+    print()
     timestamped_tests = [test for test in tests if test.get("startTime")]
     print()
     for website in websites:
