@@ -215,6 +215,8 @@ if __name__ == "__main__":
     users = user_count.keys()
     websites = get_all_websites(tests)
 
+    users_info = []
+
     all_user_averages = []
     for user in users:
         print("stas for user:", user.upper())
@@ -237,8 +239,12 @@ if __name__ == "__main__":
             print("user average speedtest result NETFLIX (mbps):", 
                 get_website_average_result("fast", user_tests))
             user_sys_info = user_tests[-1].get("systemInfo")
-            print("user Infra:", user_sys_info.get("infrastructure"))
-            print("user ISP:", user_sys_info.get("isp"))
+            user_infra = user_sys_info.get("infrastructure")
+            user_isp = user_sys_info.get("isp")
+            user_speed = user_sys_info.get("speed")
+            users_info.append([user, user_infra, user_isp, user_speed])
+            print("user Infra:", user_infra)
+            print("user ISP:", user_isp)
             print("user last test:", get_latest_test_time(user_tests))
             print()
         except Exception as e:
@@ -266,4 +272,8 @@ if __name__ == "__main__":
     for file_name in file_names:
         print("ratio for downloaded file: {}".format(file_name), get_downloaded_file_average_ratio(file_name, tests))
 
+
+    print("\nUSERS METADATA:")
+    for ui in users_info:
+        print("\t".join(str(x) for x in ui))
     quit()
