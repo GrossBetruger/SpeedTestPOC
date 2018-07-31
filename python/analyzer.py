@@ -203,7 +203,7 @@ if __name__ == "__main__":
         tests = read_tests_from_cache(TESTS_CACHE)
     else:
         tests = get_tests(TOKEN)
-        if tests.get('error') == 'Forbidden':
+        if not type(tests) == list and tests.get('error') == 'Forbidden':
             print("Token not VALID!")
             quit()
         cache_tests(tests, TESTS_CACHE)
