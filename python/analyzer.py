@@ -105,7 +105,8 @@ def get_website_average_ratio(website, tests):
     if len(subtests) == 0:
         raise Exception("no subtests found!")
     print("number of subtests:", len(subtests))
-    ratios = [compare(subtest, debug=False) for subtest in subtests]
+    ratios = [compare(subtest, debug=False) for subtest in subtests
+              if subtest.get(SPEED_TEST_WEB_SITE).get('downloadRateInKBps') != 0]
     return mean(ratios)
 
 
@@ -203,10 +204,15 @@ if __name__ == "__main__":
         tests = read_tests_from_cache(TESTS_CACHE)
     else:
         tests = get_tests(TOKEN)
-        if not type(tests) == list and tests.get('error') == 'Forbidden':
-            print("Token not VALID!")
-            quit()
-        cache_tests(tests, TESTS_CACHE)
+        if not type(tests) == list:
+            if tests.get('error') == 'Forbidden':
+                print("Token not VALID!")
+                quit()
+            elif tests.get('errorMessage').startswith('Failed to connect to'):
+                print("connection to server failed!")
+                quit()
+        else:
+            cache_tests(tests, TESTS_CACHE)
 
     c = Counter()
     c.update([x.get('user') for x in tests if x.get('user')])
